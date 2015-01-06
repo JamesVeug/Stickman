@@ -15,13 +15,13 @@ public class PlacedTile {
 		this.point = point;
 		this.size = size;
 		this.image = image;
-		System.out.println(name + ": " + size);
+		//System.out.println(name + ": " + size);
 	}
 
 	public String getSave() {		
 		String save = name + " " + point.x + " " + point.y + " " + size.width + " " + size.height;
-		System.out.println("Saving: " + save);
-		System.out.println(size);
+		//System.out.println("Saving: " + save);
+		//System.out.println(size);
 		return save;
 	}
 }
