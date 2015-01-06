@@ -1,0 +1,75 @@
+
+buttons.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+circlebutton
+  rotate: false
+  xy: 1, 688
+  size: 227, 227
+  orig: 227, 227
+  offset: 0, 0
+  index: -1
+circlebutton_pressed
+  rotate: false
+  xy: 1, 459
+  size: 227, 227
+  orig: 227, 227
+  offset: 0, 0
+  index: -1
+down
+  rotate: false
+  xy: 230, 688
+  size: 227, 227
+  orig: 227, 227
+  offset: 0, 0
+  index: -1
+down_pressed
+  rotate: false
+  xy: 1, 230
+  size: 227, 227
+  orig: 227, 227
+  offset: 0, 0
+  index: -1
+left
+  rotate: false
+  xy: 230, 459
+  size: 227, 227
+  orig: 227, 227
+  offset: 0, 0
+  index: -1
+left_pressed
+  rotate: false
+  xy: 459, 688
+  size: 227, 227
+  orig: 227, 227
+  offset: 0, 0
+  index: -1
+right
+  rotate: false
+  xy: 1, 1
+  size: 227, 227
+  orig: 227, 227
+  offset: 0, 0
+  index: -1
+right_pressed
+  rotate: false
+  xy: 230, 230
+  size: 227, 227
+  orig: 227, 227
+  offset: 0, 0
+  index: -1
+up
+  rotate: false
+  xy: 459, 459
+  size: 227, 227
+  orig: 227, 227
+  offset: 0, 0
+  index: -1
+up_pressed
+  rotate: false
+  xy: 688, 688
+  size: 227, 227
+  orig: 227, 227
+  offset: 0, 0
+  index: -1
