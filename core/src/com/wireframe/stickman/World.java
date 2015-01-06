@@ -34,79 +34,8 @@ public class World {
 		else if( obj instanceof Enemy) enemies.add((Enemy)obj);
 		else if( obj instanceof FloatingText ) floatingTexts.add((FloatingText) obj);
 	}
-	
-	public static void updateKeyPresses(){
-		if( Gdx.app.getType() != ApplicationType.Desktop )return;
-		if( player == null ) return;
-		
-		
-		// Moving Up
-		if( !player.movingUp() ){
-			if( Gdx.input.isKeyPressed(Keys.W) ){
-				player.moveUp();				
-			}
-		}
-		else{
-			// Key Release
-			if( !Gdx.input.isKeyPressed(Keys.W) ){
-				player.stopMoveingUp();				
-			}
-		}
-		
-		// Moving Right
-		if( !player.movingRight() ){
-			if( Gdx.input.isKeyPressed(Keys.D) ){
-				player.moveRight();				
-			}
-		}
-		else{
-			// Key Release
-			if( !Gdx.input.isKeyPressed(Keys.D) ){
-				player.stopMoveingRight();				
-			}
-		}
-		
-		// Moving Down
-		if( !player.movingDown() ){
-			if( Gdx.input.isKeyPressed(Keys.S) ){
-				player.moveDown();				
-			}
-		}
-		else{
-			// Key Release
-			if( !Gdx.input.isKeyPressed(Keys.S) ){
-				player.stopMoveingDown();				
-			}
-		}
-		
-		// Moving Left
-		if( !player.movingLeft() ){
-			if( Gdx.input.isKeyPressed(Keys.A) ){
-				player.moveLeft();				
-			}
-		}
-		else{
-			// Key Release
-			if( !Gdx.input.isKeyPressed(Keys.A) ){
-				player.stopMoveingLeft();				
-			}
-		}
-		
-		// Jump
-		if( Gdx.input.isKeyJustPressed(Keys.SPACE) ){
-			player.jump();				
-		}
-		
-		// Attack
-		if( Gdx.input.isKeyJustPressed(Keys.CONTROL_LEFT) ){
-			player.attack();				
-		}
-	}
 
 	public static void update() {
-		
-		// Update keys
-		updateKeyPresses();
 		
 		// Update all objects
 		for(int i = 0; i < objects.size(); i++ ){
