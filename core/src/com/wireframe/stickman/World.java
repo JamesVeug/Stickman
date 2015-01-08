@@ -21,16 +21,24 @@ public class World {
 	private static List<Character> friendlies = new ArrayList<Character>();
 	private static List<Character> enemies = new ArrayList<Character>();
 	private static List<FloatingText> floatingTexts = new ArrayList<FloatingText>();
+	private static List<Spawner> spawners = new ArrayList<Spawner>();
+	private static List<Interactable> interactables = new ArrayList<Interactable>();
 
 	public static void addObject(GameObject obj) {
+		//if( obj instanceof Tile)
 		objects.add(obj);
 		
-		if( obj instanceof Ladder ) ladders.add((Ladder) obj);
+		if( obj instanceof Player ){
+			player = (Player)obj;
+			friendlies.add(player);
+		}
+		else if( obj instanceof Ladder ) ladders.add((Ladder) obj);
 		else if( obj instanceof Tile ) tiles.add((Tile) obj);
-		else if( obj instanceof Player ) player = (Player)obj;
-		else if( obj instanceof Friendly ) friendlies.add((Friendly) obj);
+		else if( obj instanceof Friendly )friendlies.add((Friendly) obj);
 		else if( obj instanceof Enemy) enemies.add((Enemy)obj);
 		else if( obj instanceof FloatingText ) floatingTexts.add((FloatingText) obj);
+		else if( obj instanceof Spawner ) spawners.add((Spawner) obj);
+		else if( obj instanceof Interactable ) interactables.add((Interactable) obj);
 	}
 
 	public static void update() {
@@ -72,6 +80,10 @@ public class World {
 	public static List<Character> getEnemies(){
 		return enemies;
 	}
+	
+	public static List<Interactable> getInteractables(){
+		return interactables;
+	}
 
 	public static Player getPlayer() {
 		return player;
@@ -106,20 +118,23 @@ public class World {
 	
 	public static GameObject getObjectFromData(String name, Vector3 point, Vector2 size){
 		if( name.equalsIgnoreCase("brick") ) return new Brick(point,size);
-		if( name.equalsIgnoreCase("player") ) return new Player(point);
-		if( name.equalsIgnoreCase("enemy") ) return new Enemy(point);
-		if( name.equalsIgnoreCase("friendly") ) return new Friendly(point);
+		if( name.equalsIgnoreCase("player") ) return new Player(point,size);
+		if( name.equalsIgnoreCase("enemy") ) return new Enemy(point,size);
+		if( name.equalsIgnoreCase("friendly") ) return new Friendly(point,size);
 		if( name.equalsIgnoreCase("spikes") ) return new Spikes(point,size);
 		if( name.equalsIgnoreCase("water") ) return new Water(point,size);
 		if( name.equalsIgnoreCase("watershore") ) return new WaterShore(point,size);
 		if( name.equalsIgnoreCase("ladder") ) return new Ladder(point,(int) size.y);
+		if( name.equalsIgnoreCase("redspawner") ) return new Spawner(point,size,Spawner.SPAWNERTYPE_RED);
+		if( name.equalsIgnoreCase("bluespawner") ) return new Spawner(point,size,Spawner.SPAWNERTYPE_BLUE);
+		if( name.equalsIgnoreCase("smallbutton") ) return new SmallButton(point,size,SmallButton.OFF);
 		
 		
-		return null;
+		throw new RuntimeException("UNKNOWN DATATYPE: '" + name + "'");
 	}
 	
 	public static void createDefaultWorld(){
-		addObject(new Player(100,50,GameObject.Z_OBJECTS));
+		addObject(new Player(100,50,GameObject.Z_OBJECTS,50,50));
 		
 		// Left Column
 		for(int y = 0; y < 1000; y += 50){addObject(new Brick(0,y,GameObject.Z_BACKGROUND, 50,50));}
@@ -144,6 +159,25 @@ public class World {
 		
 		// Ladders
 		addObject(new Ladder(215,100,GameObject.Z_BACKGROUNDOBJECT,150));
+	}
+
+	public static void removeCharacter(Character victim) {
+		objects.remove(victim);
+		if( victim instanceof Enemy ){
+			enemies.remove(victim);
+		}
+		else if( victim instanceof Friendly ){
+			friendlies.remove(victim);
+		}
+		else if( victim == player ){
+			System.out.println("REMOVED PLAYER");
+		}
+		
+	}
+	
+	public static void removeFloatingText(FloatingText text){
+		floatingTexts.remove(text);
+		objects.remove(text);
 	}
 }
 

@@ -1,10 +1,13 @@
 package com.wireframe.stickman;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -25,6 +28,7 @@ public class AndroidGUI {
 		add("left");
 		add("right");
 		add("down");
+		add("circlebutton");
 		add("circlebutton");
 		add("circlebutton");
 	}};
@@ -54,6 +58,7 @@ public class AndroidGUI {
 		actionButtons = new ArrayList<Button>(){{
 			add(new TextButton("JUMP", buttonStyles.get(4))); // Jump
 			add(new TextButton("ATTACK", buttonStyles.get(5))); // Attack
+			add(new TextButton("INTERACT", buttonStyles.get(6))); // Attack
 		}};
 		
 		Gdx.input.setInputProcessor(stage);
@@ -142,6 +147,19 @@ public class AndroidGUI {
 			}
 
 		});
+		
+		// Interact
+		actionButtons.get(2).addListener(new InputListener(){
+			public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+				World.getPlayer().attemptInteraction();
+				Gdx.input.vibrate(50);
+				return true;
+		 	}
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				return;
+			}
+
+		});
 	}
 	
 	public static void updateButtons(float viewWidth, float viewHeight){
@@ -167,6 +185,7 @@ public class AndroidGUI {
 		
 		actionButtons.get(0).setPosition(viewWidth-(width*2), 0); // Jump
 		actionButtons.get(1).setPosition(viewWidth-width, height); // Attack
+		actionButtons.get(2).setPosition(viewWidth-width, 0); // Interact
 	}
 	
 	public static void draw(Rectangle viewport){

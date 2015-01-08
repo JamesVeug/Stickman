@@ -1,6 +1,7 @@
 package com.wireframe.stickman;
 
 import java.util.List;
+import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
@@ -11,17 +12,26 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
-public abstract class Character extends GameObject implements Heath{	
-	private static final int col = 3;
-	private static final int row = 8;
-	private static final int CHARACTER_MAX_HEALTH = 100;
+public abstract class Character extends GameObject implements Health{
+	public static final int TEAM_NEUTRAL = 0;
+	public static final int TEAM_BLUE = 1;
+	public static final int TEAM_RED = 2;
+	
+	public static final int col = 3;
+	public static final int row = 8;
+	public static final int CHARACTER_MAX_HEALTH = 100;
+	public static final int CHARACTER_FADE_TIME = 2;
+	public static final int CHARACTER_ATTACKDAMAGE_MAX = 25;
+	public static final int CHARACTER_ATTACKDAMAGE_BASE = 5;
 	
 	private Animation animation;
 	private Texture characterTexture;
 	private TextureRegion[] frames;
 
 	private float stateTime;
+	private float fadeTime;
 	private TextureRegion currentImage;
+	private boolean animating = true;
 
 	private Rectangle bounds;
 	
@@ -41,20 +51,33 @@ public abstract class Character extends GameObject implements Heath{
 	private boolean attacking = false;
 	private boolean facingRight = true;
 	
+	private int teamNumber = TEAM_NEUTRAL;
 	private Character targetToAttack;
-	private int attackDamage = 10;
+	
+	// Attacking
+	protected Random random = new Random();
+	private int maxAttackDamage = CHARACTER_ATTACKDAMAGE_MAX;
+	private int baseAttackDamage = CHARACTER_ATTACKDAMAGE_BASE;
 	private float lastAttack = 0;
 	private float attackSpeed = 0.15f;
 	private float attackRange = 30;
-	private int health = CHARACTER_MAX_HEALTH;
+	
+	// HEAlTH
+	private int maxHealth = CHARACTER_MAX_HEALTH;
+	private int health = maxHealth;
 
-	public Character(String type, int x, int y, int z) {
-		this(type, new Vector3(x,y,z));
+	public Character(String type, int x, int y, int z, int w, int h) {
+		this(type, new Vector3(x,y,z), new Vector2(w,h));
 	}
 
-	public Character(String type, Vector3 position) {
+	public Character(String type, Vector3 position, Vector2 size) {
 		this.setPosition(position);
-		
+		this.setSize(size);
+		initialize(type);
+	}
+	
+	private void initialize(String type){		
+		this.setTeamNumber(type);
 		characterTexture = new Texture(Gdx.files.internal(type + "_animations.png"));
 		TextureRegion[][] tmp = TextureRegion.split(characterTexture, characterTexture.getWidth()/col, characterTexture.getHeight()/row);
 		frames = new TextureRegion[col*row];
@@ -70,12 +93,22 @@ public abstract class Character extends GameObject implements Heath{
 		stateTime = 0f;
 		animation = new Animation(animationSpeed, frames);
 		currentImage = animation.getKeyFrame(6);
-		bounds = new Rectangle(position.x, position.y, currentImage.getRegionWidth(), currentImage.getRegionHeight());
+		bounds = new Rectangle(position.x, position.y, size.x, size.y);
 	}
 
 	public void update(){
 		stateTime += Gdx.graphics.getDeltaTime();
-		//if( World.getPlayer() == this )	System.out.println("Ladder: " + ladder);
+		
+		// Are we did?
+		if( !isAlive() ){
+			fadeTime += Gdx.graphics.getDeltaTime();
+			if( fadeTime > CHARACTER_FADE_TIME ){
+				World.removeCharacter(this);
+			}
+			animate();
+			return;
+		}
+		
 		
 		// Check if we have a ladder
 		if( ladder == null && ( movingUp || movingDown ) ){
@@ -91,6 +124,8 @@ public abstract class Character extends GameObject implements Heath{
 					//if( World.getPlayer() == this )	System.out.println("==========FOUND NEW LADDER");
 					this.ladder = ladder;
 					velocity.x = 0;
+					position.x = ladder.getPosition().x;
+					bounds.setX(position.x);
 					break;
 				}
 			}
@@ -112,10 +147,8 @@ public abstract class Character extends GameObject implements Heath{
 		
 		
 		if( attacking ){
-			if( World.getPlayer() == this )	System.out.println("if attacking");
 			if( lastAttack != 0f ){
 				lastAttack += Gdx.graphics.getDeltaTime();
-				//if( World.getPlayer() == this )	System.out.println(lastAttack + " " + (Gdx.graphics.getDeltaTime() + attackSpeed));
 				if( lastAttack > attackSpeed ){
 					attacking = false;	
 					lastAttack = 0;
@@ -123,11 +156,7 @@ public abstract class Character extends GameObject implements Heath{
 			}
 			else{
 				// Perform attack
-				lastAttack = Gdx.graphics.getDeltaTime();
-				if( targetToAttack != null ){
-					targetToAttack.takeDamage(attackDamage);
-				}
-				//if( World.getPlayer() == this )	System.out.println(lastAttack);
+				performAttack();
 			}
 		}
 		
@@ -175,16 +204,33 @@ public abstract class Character extends GameObject implements Heath{
 		animate();
 	}
 	
+	public void performAttack() {
+		lastAttack = Gdx.graphics.getDeltaTime();
+		if( targetToAttack != null ){
+			targetToAttack.takeDamage(random.nextInt(maxAttackDamage - baseAttackDamage) + baseAttackDamage, this);
+		}
+	}
+
 	private void animate(){
+		if( !animating ){ return; }
+		
 		if( stateTime /animationSpeed >= col ){
 			stateTime = 0;
 		}
 		
-		if( movingUp && ladder != null ){
+		if( !isAlive() ){
+			
+			// Death
+			int index = facingRight ? 18 : 21;
+			currentImage = animation.getKeyFrame(index*animationSpeed + stateTime);
+			if( currentImage == animation.getKeyFrames()[index+2]){
+				animating = false;
+			}
+		}
+		else if( movingUp && ladder != null ){
 			currentImage = animation.getKeyFrame(6*animationSpeed + stateTime);
 		}
 		else if( attacking ){
-			if( World.getPlayer() == this )	System.out.println("animate");
 			int index = facingRight ? 12 : 15;
 			currentImage = animation.getKeyFrame(index*animationSpeed + stateTime);			
 		}
@@ -205,6 +251,7 @@ public abstract class Character extends GameObject implements Heath{
 			// IDLE
 			currentImage = animation.getKeyFrame(6*animationSpeed + stateTime);
 		}
+		
 	}
 	
 	private void moveCharacter(){
@@ -212,7 +259,7 @@ public abstract class Character extends GameObject implements Heath{
 		// Move by Y
 		position.y += velocity.y;
 		//if( World.getPlayer() == this )	System.out.println(velocity.y);
-		bounds.set(position.x, position.y, currentImage.getRegionWidth(), currentImage.getRegionHeight());
+		bounds.set(position.x, position.y, size.x, size.y);
 	
 		// Check for collision
 		List<Tile> overLappingObjects = World.getTilesInArea(bounds);
@@ -235,13 +282,13 @@ public abstract class Character extends GameObject implements Heath{
 				if( velocity.y > 0 && ladder != null ) ladder = null;
 				position.y -= velocity.y;
 				velocity.y = 0;
-				bounds.set(position.x, position.y, currentImage.getRegionWidth(), currentImage.getRegionHeight());
+				bounds.set(position.x, position.y, size.x, size.y);
 				
 			}
 		}
 		
 		position.x += velocity.x;
-		bounds.set(position.x, position.y, currentImage.getRegionWidth(), currentImage.getRegionHeight());
+		bounds.set(position.x, position.y, size.x, size.y);
 	
 		// Check for collision
 		overLappingObjects = World.getTilesInArea(bounds);
@@ -253,16 +300,63 @@ public abstract class Character extends GameObject implements Heath{
 
 		
 		// Reset bounds
-		bounds.set(position.x, position.y, currentImage.getRegionWidth(), currentImage.getRegionHeight());
+		bounds.set(position.x, position.y, size.x, size.y);
+	}
+	
+	protected boolean canAttackTarget(GameObject target) {
+		
+		// See if they are alive
+		if( target instanceof Health && !((Health)target).isAlive() ){
+			return false;
+		}
+		
+		// Must be on the same Y
+		if( Math.abs((int)target.getPosition().y - (int)getPosition().y) > 10){
+			return false;
+		}
+		
+		// Must be within attacking range
+		if( (int)target.getPosition().x < (int)getPosition().x ){
+			// Enemy to the left
+			
+			// Not facing the enemy that is on the left
+			if( facingRight() ){
+				//System.out.println("NOT Facing correct direction");
+				return false; 
+			}
+			
+			// Within attacking range
+			if( Vector2.len(target.getPosition().x - getPosition().x, 1) > getAttackRange() ){
+				//System.out.println(Vector2.len(target.getPosition().x - getPosition().x, 1));
+				return false;
+			}
+		}
+		else{
+			// Enemy to the right
+			
+			// Not facing the enemy that is on the right
+			if( !facingRight() ){
+				//System.out.println("NOT Facing correct direction");
+				return false; 
+			}
+			
+			// Within attacking range
+			if( (int)target.getPosition().x > (int)(getPosition().x+getAttackRange()) ){
+				//System.out.println(Vector2.len(target.getPosition().x - getPosition().x, 1));
+				return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	@Override
 	public void draw(SpriteBatch batch){
-		batch.draw(currentImage, position.x, position.y);
+		batch.draw(currentImage, position.x, position.y, size.x, size.y);
 	}
 
 	@Override
-	public void takeDamage(int damage) {
+	public void takeDamage(int damage, Character attacker) {
 		int oldHealth = health;
 		oldHealth = Math.max(0, Math.min(getMaxHealth(), health - damage));
 
@@ -270,13 +364,18 @@ public abstract class Character extends GameObject implements Heath{
 		health = oldHealth;
 		
 		// Floating Text // TODO
-		//FloatingText text = new FloatingText(String.valueOf(difference), getPosition().x, getPosition().y);
-		//World.addObject(text);
+		FloatingText text = new FloatingText(String.valueOf(difference), getPosition().x, getPosition().y);
+		text.position.y -= text.getHeight();
+		World.addObject(text);
+		
+		if( !isAlive() ){
+			stateTime = 0f;
+		}
 	}
 
 	@Override
 	public void heal(int health) {
-		takeDamage(-health);
+		takeDamage(-health, null);
 	}
 
 	@Override
@@ -286,12 +385,22 @@ public abstract class Character extends GameObject implements Heath{
 
 	@Override
 	public int getMaxHealth() {
-		return CHARACTER_MAX_HEALTH;
+		return maxHealth;
 	}
 
 	@Override
 	public int getHealth() {
 		return health;
+	}
+	
+	@Override
+	public void setMaxHealth(int max){
+		maxHealth = max;
+	}
+	
+	@Override
+	public void setHealth(int health){
+		this.health = health;
 	}
 	
 	/**
@@ -428,12 +537,12 @@ public abstract class Character extends GameObject implements Heath{
 		if( movingLeft() ) stopMoveingLeft();
 	}
 
-	public int getWidth() {
-		return currentImage.getRegionWidth();
+	public float getWidth() {
+		return size.x;
 	}
 	
-	public int getHeight() {
-		return currentImage.getRegionHeight();
+	public float getHeight() {
+		return size.y;
 	}
 
 	public void jump() {
@@ -487,5 +596,43 @@ public abstract class Character extends GameObject implements Heath{
 
 	public void setTargetToAttack(Character targetToAttack) {
 		this.targetToAttack = targetToAttack;
+	}
+
+	public int getTeamNumber() {
+		return teamNumber;
+	}
+
+	public void setTeamNumber(int teamNumber) {
+		this.teamNumber = teamNumber;
+	}
+
+	private void setTeamNumber(String type) {
+		if( type.equalsIgnoreCase("player") ) this.setTeamNumber(TEAM_BLUE);
+		else if( type.equalsIgnoreCase("friendly") ) this.setTeamNumber(TEAM_BLUE);
+		else if( type.equalsIgnoreCase("enemy") ) this.setTeamNumber(TEAM_RED);		
+	}
+
+	public float getFadeTime() {
+		return fadeTime;
+	}
+
+	public void setFadeTime(float fadeTime) {
+		this.fadeTime = fadeTime;
+	}
+
+	public int getMaxAttackDamage() {
+		return maxAttackDamage;
+	}
+
+	public void setMaxAttackDamage(int maxAttackDamage) {
+		this.maxAttackDamage = maxAttackDamage;
+	}
+
+	public int getBaseAttackDamage() {
+		return baseAttackDamage;
+	}
+
+	public void setBaseAttackDamage(int baseAttackDamage) {
+		this.baseAttackDamage = baseAttackDamage;
 	}
 }

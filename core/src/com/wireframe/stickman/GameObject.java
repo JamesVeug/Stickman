@@ -2,6 +2,7 @@ package com.wireframe.stickman;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 public abstract class GameObject implements Comparable<GameObject>{
@@ -14,6 +15,7 @@ public abstract class GameObject implements Comparable<GameObject>{
 	
 
 	protected Vector3 position;
+	protected Vector2 size;
 	public abstract void draw(SpriteBatch batch);
 	public abstract void update();
 	public abstract Rectangle getBounds();
@@ -24,6 +26,14 @@ public abstract class GameObject implements Comparable<GameObject>{
 
 	public void setPosition(Vector3 position2) {
 		this.position = position2;
+	}
+	
+	public Vector2 getSize() {
+		return size;
+	}
+
+	public void setSize(Vector2 size) {
+		this.size = size;
 	}
 	
 	@Override

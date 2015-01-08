@@ -10,4 +10,10 @@ public class StickmanResources {
 		else if( Gdx.app.getType() != ApplicationType.Android ) return Gdx.files.local(file);
 		return null;
 	}
+	
+	public static FileHandle GetInternalFile(String file){
+		if( Gdx.app.getType() != ApplicationType.Desktop ) return Gdx.files.internal("assets/" + file);
+		else if( Gdx.app.getType() != ApplicationType.Android ) return Gdx.files.internal(file);
+		return null;
+	}
 }
