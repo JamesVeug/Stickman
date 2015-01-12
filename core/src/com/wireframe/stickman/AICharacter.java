@@ -181,8 +181,8 @@ public class AICharacter extends Character{
 		public int compare(Character o1, Character o2) {
 			
 			// Distance between them
-			float distance1 = o1.getPosition().dst(searcher.position);
-			float distance2 = o2.getPosition().dst(searcher.position);
+			float distance1 = o1.getPosition().dst(searcher.getPosition());
+			float distance2 = o2.getPosition().dst(searcher.getPosition());
 			return (int) Math.signum(distance1 - distance2);
 		}
 		

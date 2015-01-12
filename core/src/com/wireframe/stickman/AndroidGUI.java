@@ -1,13 +1,10 @@
 package com.wireframe.stickman;
 
 import java.util.ArrayList;
-import java.util.List;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -17,27 +14,43 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
 
 public class AndroidGUI {
-	private static Stage stage = new Stage();
-	private static BitmapFont font = new BitmapFont(false);
+	private static Stage stage;
+	private static BitmapFont font;
 
 	private static ArrayList<Button> movingmentButtons;
 	private static ArrayList<Button> actionButtons;
-	private static ArrayList<TextButtonStyle> buttonStyles = new ArrayList<TextButtonStyle>(); 	
-	private static ArrayList<String> buttonStylesMappings = new ArrayList<String>(){{
-		add("up");
-		add("left");
-		add("right");
-		add("down");
-		add("circlebutton");
-		add("circlebutton");
-		add("circlebutton");
-	}};
+	private static ArrayList<TextButtonStyle> buttonStyles; 	
+	private static ArrayList<String> buttonStylesMappings;
 	
 	
-	private static Skin skin = new Skin();
-	private static TextureAtlas buttonAtlas = new TextureAtlas("buttons/buttons.pack");
+	private static Skin skin;
+	private static TextureAtlas buttonAtlas;
 	
 	public static void initialize(){
+		stage = new Stage();
+		font = new BitmapFont(false);
+		buttonStyles = new ArrayList<TextButtonStyle>();
+		buttonStylesMappings = new ArrayList<String>(){
+			private static final long serialVersionUID = 6051847176794062001L;
+		{
+			add("up");
+			add("left");
+			add("right");
+			add("down");
+			add("circlebutton");
+			add("circlebutton");
+		}};
+
+
+
+		
+		
+		
+		skin = new Skin();
+		buttonAtlas = new TextureAtlas("buttons/buttons.pack");
+				
+				
+				
 		skin.addRegions(buttonAtlas);
 		font.setScale(3f);
 		
@@ -49,16 +62,21 @@ public class AndroidGUI {
 			buttonStyles.add(style);
 		}
 		
-		movingmentButtons = new ArrayList<Button>(){{
+		movingmentButtons = new ArrayList<Button>(){
+			private static final long serialVersionUID = -297482046234989211L;
+
+		{
 			add(new Button(buttonStyles.get(0))); // Up
 			add(new Button(buttonStyles.get(1))); // Left
 			add(new Button(buttonStyles.get(2))); // Right
 			add(new Button(buttonStyles.get(3))); // Down
 		}};
-		actionButtons = new ArrayList<Button>(){{
+		actionButtons = new ArrayList<Button>(){
+			private static final long serialVersionUID = -6045127395846488373L;
+
+		{
 			add(new TextButton("JUMP", buttonStyles.get(4))); // Jump
 			add(new TextButton("ATTACK", buttonStyles.get(5))); // Attack
-			add(new TextButton("INTERACT", buttonStyles.get(6))); // Attack
 		}};
 		
 		Gdx.input.setInputProcessor(stage);
@@ -68,7 +86,7 @@ public class AndroidGUI {
 		movingmentButtons.get(0).addListener(new InputListener(){
 			public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
 				World.getPlayer().moveUp();
-				Gdx.input.vibrate(50);
+				//Gdx.input.vibrate(50);
 				return true;
 		 	}
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
@@ -82,7 +100,7 @@ public class AndroidGUI {
 		movingmentButtons.get(1).addListener(new InputListener(){
 			public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
 				World.getPlayer().moveLeft();
-				Gdx.input.vibrate(50);
+				//Gdx.input.vibrate(50);
 				return true;
 		 	}
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
@@ -97,7 +115,7 @@ public class AndroidGUI {
 		movingmentButtons.get(2).addListener(new InputListener(){
 			public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
 				World.getPlayer().moveRight();
-				Gdx.input.vibrate(50);
+				//Gdx.input.vibrate(50);
 				return true;
 		 	}
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
@@ -111,7 +129,7 @@ public class AndroidGUI {
 		movingmentButtons.get(3).addListener(new InputListener(){
 			public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
 				World.getPlayer().moveDown();
-				Gdx.input.vibrate(50);
+				//Gdx.input.vibrate(50);
 				return true;
 		 	}
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
@@ -129,7 +147,7 @@ public class AndroidGUI {
 		 	}
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				World.getPlayer().jump();
-				Gdx.input.vibrate(50);
+				//Gdx.input.vibrate(50);
 				return;
 			}
 
@@ -139,20 +157,7 @@ public class AndroidGUI {
 		actionButtons.get(1).addListener(new InputListener(){
 			public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
 				World.getPlayer().attack();
-				Gdx.input.vibrate(50);
-				return true;
-		 	}
-			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
-				return;
-			}
-
-		});
-		
-		// Interact
-		actionButtons.get(2).addListener(new InputListener(){
-			public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-				World.getPlayer().attemptInteraction();
-				Gdx.input.vibrate(50);
+				//Gdx.input.vibrate(50);
 				return true;
 		 	}
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
@@ -185,7 +190,6 @@ public class AndroidGUI {
 		
 		actionButtons.get(0).setPosition(viewWidth-(width*2), 0); // Jump
 		actionButtons.get(1).setPosition(viewWidth-width, height); // Attack
-		actionButtons.get(2).setPosition(viewWidth-width, 0); // Interact
 	}
 	
 	public static void draw(Rectangle viewport){
@@ -195,5 +199,12 @@ public class AndroidGUI {
 
 	public static void resize(int width, int height) {
 		updateButtons(width,height);
+	}
+
+	/**
+	 * @return the font
+	 */
+	public static BitmapFont getFont() {
+		return font;
 	}
 }

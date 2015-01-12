@@ -2,7 +2,6 @@ package com.wireframe.stickman;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
@@ -19,9 +18,7 @@ public class Spawner extends GameObject{
 	private Character spawned = null;
 	
 	public Spawner(Vector3 point, Vector2 size, int type){
-		System.out.println("CREATED");
-		this.setPosition(point);
-		this.setSize(size);
+		super(point, size);
 		this.type = type;
 	}
 	
@@ -49,10 +46,10 @@ public class Spawner extends GameObject{
 	
 	public void spawn(){
 		if( type == SPAWNERTYPE_RED ){
-			spawned = new Enemy(position.x, position.y, position.z, size.x, size.y);
+			spawned = new Enemy(getX(), getY(), getZ(), getWidth(), getHeight());
 		}
 		else if( type == SPAWNERTYPE_BLUE ){
-			spawned = new Friendly(position.x, position.y, position.z, size.x, size.y);
+			spawned = new Friendly(getX(), getY(), getZ(), getWidth(), getHeight());
 		}
 		
 		// Add to the world
@@ -63,12 +60,10 @@ public class Spawner extends GameObject{
 
 	@Override
 	public void draw(SpriteBatch batch) {
-		// Don't draw this entity
 	}
 
 	@Override
-	public Rectangle getBounds() {
-		// Don't have bounds for this
-		return null;
+	public void dispose() {
+		
 	}
 }

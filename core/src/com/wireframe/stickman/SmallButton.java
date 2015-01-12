@@ -4,55 +4,68 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 public class SmallButton extends GameObject implements Interactable{
-	public static final int OFF = 0;
-	public static final int ON = 1;
+	public static final int RED = 0;
+	public static final int GREEN = 1;
+	public static final int BLUE = 2;
+	public static final int OFF = 3;
 	
-	public int state;
+	public static final int MAXCOLOURS = 4;
+	
+	
+	private int type;
 	private TextureRegion[] frames;
 	
-	private final Rectangle bounds;
 
-	public SmallButton(Vector3 point, Vector2 size, int state){
-		setPosition(point);
-		setSize(size);
-		bounds = new Rectangle(point.x, point.y, size.x, size.y);
+	public SmallButton(Vector3 point, Vector2 size, int type){
+		super(point, size);		
+		this.setType(type);
 		
-		this.state = state;
-		
-		Texture characterTexture = new Texture(Gdx.files.internal("smallbutton.png"));
-		TextureRegion[][] tmp = TextureRegion.split(characterTexture, characterTexture.getWidth()/2, characterTexture.getHeight());
-		frames = new TextureRegion[2];
+		Texture characterTexture = StickmanResources.getImage("smallbutton.png");
+		TextureRegion[][] tmp = TextureRegion.split(characterTexture, characterTexture.getWidth()/MAXCOLOURS, characterTexture.getHeight());
+		frames = new TextureRegion[tmp[0].length];
 		frames[0] = tmp[0][0];
 		frames[1] = tmp[0][1];
-		System.out.println(frames[0]);
-		System.out.println(frames[1]);
+		frames[2] = tmp[0][2];
+		frames[3] = tmp[0][3];
+	}
+	
+	public void setType(int type){
+		if( type >= MAXCOLOURS ){
+			throw new RuntimeException("UNKNOWN TYPE!!! " + type);
+		}
+		this.type = type;
 	}
 	
 	@Override
 	public void update(){
+		if( type == OFF ) return;
 		
+		Player player = World.getPlayer();
+		if( player.getBounds().overlaps(getBounds()) ){
+			interact(player);
+		}
 	}
 		
 
 	@Override
 	public void draw(SpriteBatch batch) {
-		TextureRegion image = state == ON ? frames[1] : frames[0];
-		batch.draw(image, position.x, position.y, size.x, size.y);
-	}
-
-	@Override
-	public Rectangle getBounds() {
-		return bounds;
+		batch.draw(frames[type], getX(), getY(), getWidth(), getHeight());
 	}
 
 	@Override
 	public void interact(GameObject triggerer) {
-		// Flip the state
-		state = state == ON ? OFF : ON;
+		World.getDoor(type).toggle();		
+		setType(OFF);
+	}
+
+	@Override
+	public void dispose() {
+		for(TextureRegion t : frames){
+			t.getTexture().dispose();
+		}
 	}
 }

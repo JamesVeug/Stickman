@@ -7,6 +7,8 @@ import java.util.Scanner;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
@@ -15,14 +17,16 @@ import com.badlogic.gdx.math.Vector3;
 public class World {
 	private static Player player;
 	
-	private static List<GameObject> objects = new ArrayList<GameObject>();
-	private static List<Ladder> ladders = new ArrayList<Ladder>();
-	private static List<Tile> tiles = new ArrayList<Tile>();
-	private static List<Character> friendlies = new ArrayList<Character>();
-	private static List<Character> enemies = new ArrayList<Character>();
-	private static List<FloatingText> floatingTexts = new ArrayList<FloatingText>();
-	private static List<Spawner> spawners = new ArrayList<Spawner>();
-	private static List<Interactable> interactables = new ArrayList<Interactable>();
+	private static List<GameObject> objects;
+	private static List<Ladder> ladders;
+	private static List<Tile> tiles;
+	private static List<Character> friendlies;
+	private static List<Character> enemies;
+	private static List<FloatingText> floatingTexts;
+	private static List<Spawner> spawners;
+	private static List<Interactable> interactables;
+	private static List<Door> doors;
+	private static Texture DEFAULTBACKGROUND;
 
 	public static void addObject(GameObject obj) {
 		//if( obj instanceof Tile)
@@ -32,13 +36,14 @@ public class World {
 			player = (Player)obj;
 			friendlies.add(player);
 		}
-		else if( obj instanceof Ladder ) ladders.add((Ladder) obj);
-		else if( obj instanceof Tile ) tiles.add((Tile) obj);
-		else if( obj instanceof Friendly )friendlies.add((Friendly) obj);
-		else if( obj instanceof Enemy) enemies.add((Enemy)obj);
-		else if( obj instanceof FloatingText ) floatingTexts.add((FloatingText) obj);
-		else if( obj instanceof Spawner ) spawners.add((Spawner) obj);
-		else if( obj instanceof Interactable ) interactables.add((Interactable) obj);
+		if( obj instanceof Ladder ) ladders.add((Ladder) obj);
+		if( obj instanceof Tile ) tiles.add((Tile) obj);
+		if( obj instanceof Friendly )friendlies.add((Friendly) obj);
+		if( obj instanceof Enemy) enemies.add((Enemy)obj);
+		if( obj instanceof FloatingText ) floatingTexts.add((FloatingText) obj);
+		if( obj instanceof Spawner ) spawners.add((Spawner) obj);
+		if( obj instanceof Interactable ) interactables.add((Interactable) obj);
+		if( obj instanceof Door ) doors.add((Door) obj);
 	}
 
 	public static void update() {
@@ -46,6 +51,12 @@ public class World {
 		// Update all objects
 		for(int i = 0; i < objects.size(); i++ ){
 			 objects.get(i).update();
+		}
+	}
+	
+	public static void dispose(){
+		for(GameObject o : objects){
+			o.dispose();
 		}
 	}
 	
@@ -59,7 +70,10 @@ public class World {
 		return overlaps;
 	}
 
-	public static void draw(SpriteBatch batch) {
+	public static void draw(SpriteBatch batch, OrthographicCamera cam) {
+		
+		// Draw background
+		drawBackground(batch, cam);
 
 		// Sort the gameObjects
 		Collections.sort(objects);
@@ -67,6 +81,16 @@ public class World {
 		for(int i = 0; i < objects.size(); i++ ){
 			 objects.get(i).draw(batch);
 		}
+	}
+	
+	private static void drawBackground(SpriteBatch batch, OrthographicCamera cam){
+		float x = World.getPlayer().getPosition().x - cam.viewportWidth/2;
+		float y = World.getPlayer().getPosition().y - cam.viewportHeight/2;
+		float w = World.getPlayer().getSize().x + cam.viewportWidth;
+		float h = World.getPlayer().getSize().y + cam.viewportHeight;
+		
+		batch.draw(DEFAULTBACKGROUND, x, y, w, h);
+		
 	}
 	
 	public static List<Ladder> getLadders(){
@@ -90,25 +114,47 @@ public class World {
 	}
 
 	public static void initialize() {
+		objects = new ArrayList<GameObject>();
+		ladders = new ArrayList<Ladder>();
+		tiles = new ArrayList<Tile>();
+		friendlies = new ArrayList<Character>();
+		enemies = new ArrayList<Character>();
+		floatingTexts = new ArrayList<FloatingText>();
+		spawners = new ArrayList<Spawner>();
+		interactables = new ArrayList<Interactable>();
+		doors = new ArrayList<Door>();
+		DEFAULTBACKGROUND = new Texture(StickmanResources.GetLocalFile("worlds/background_null.png"));
+		
+		
 		FileHandle selectedFile = StickmanResources.GetLocalFile("worlds/world.txt");			
 		Scanner scan = new Scanner(selectedFile.read());
 		while(scan.hasNext()){
 			
 			//brick 100 100 50 50
 			String name = scan.next();
+			if( name.equals("background") ){
+				processBackground(scan);
+				continue;
+			}
 			Vector3 point = new Vector3(scan.nextInt(), scan.nextInt(), 0);
 			point.y -= Gdx.graphics.getHeight();
 			
 			Vector2 size = new Vector2(scan.nextInt(), scan.nextInt());			
 			GameObject loadedObject = getObjectFromData(name,point,size);
 			assign3DPoint(loadedObject);
-			System.out.println(loadedObject);
 			addObject(loadedObject);		
 		}			
 		scan.close();
 		
 	}
 	
+	private static void processBackground(Scanner scan) {
+		@SuppressWarnings("unused")
+		String backgroundImage = scan.next();
+		
+		
+	}
+
 	public static void assign3DPoint(GameObject o){
 		if( o instanceof Tile ) o.getPosition().z = GameObject.Z_BACKGROUND;
 		if( o instanceof WaterShore ) o.getPosition().z = GameObject.Z_BACKGROUNDOBJECT;
@@ -127,7 +173,12 @@ public class World {
 		if( name.equalsIgnoreCase("ladder") ) return new Ladder(point,(int) size.y);
 		if( name.equalsIgnoreCase("redspawner") ) return new Spawner(point,size,Spawner.SPAWNERTYPE_RED);
 		if( name.equalsIgnoreCase("bluespawner") ) return new Spawner(point,size,Spawner.SPAWNERTYPE_BLUE);
-		if( name.equalsIgnoreCase("smallbutton") ) return new SmallButton(point,size,SmallButton.OFF);
+		if( name.equalsIgnoreCase("redbutton") ) return new SmallButton(point,size,SmallButton.RED);
+		if( name.equalsIgnoreCase("bluebutton") ) return new SmallButton(point,size,SmallButton.BLUE);
+		if( name.equalsIgnoreCase("greenbutton") ) return new SmallButton(point,size,SmallButton.GREEN);
+		if( name.equalsIgnoreCase("reddoor") ) return new Door(point,size,Door.RED);
+		if( name.equalsIgnoreCase("bluedoor") ) return new Door(point,size,Door.BLUE);
+		if( name.equalsIgnoreCase("greendoor") ) return new Door(point,size,Door.GREEN);
 		
 		
 		throw new RuntimeException("UNKNOWN DATATYPE: '" + name + "'");
@@ -163,6 +214,7 @@ public class World {
 
 	public static void removeCharacter(Character victim) {
 		objects.remove(victim);
+		//victim.dispose();
 		if( victim instanceof Enemy ){
 			enemies.remove(victim);
 		}
@@ -178,6 +230,23 @@ public class World {
 	public static void removeFloatingText(FloatingText text){
 		floatingTexts.remove(text);
 		objects.remove(text);
+		//text.dispose();
+	}
+
+	public static Door getDoor(int type) {
+		for(int i = 0; i < doors.size(); i++ ){
+			Door door = doors.get(i);
+			if( door.getType() == type ){
+				return door;
+			}
+		}
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static List<Character> getCharactersInArea(Rectangle bounds) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
 

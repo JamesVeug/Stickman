@@ -1,5 +1,6 @@
 package com.wireframe.stickman;
 
+
 import com.badlogic.gdx.Application.ApplicationType;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -29,6 +30,9 @@ public class StickmanGame extends ApplicationAdapter {
 		cam.setToOrtho(true, VIRTUAL_WIDTH/2, VIRTUAL_HEIGHT/2);
 		cam.update();
 		
+		// Import textures
+		StickmanResources.initialize();
+		
 		// Create the world
 		World.initialize();
 		
@@ -41,6 +45,7 @@ public class StickmanGame extends ApplicationAdapter {
 	@Override
 	public void dispose(){
 		batch.dispose();
+		World.dispose();
 	}
 
 	@Override
@@ -86,7 +91,7 @@ public class StickmanGame extends ApplicationAdapter {
 		
 		// Update Camera
 		Player player = World.getPlayer();
-		cam.position.set(player.position.x+player.getWidth()/2, player.position.y+player.getHeight()/2, 0);
+		cam.position.set(player.getX()+player.getWidth()/2, player.getY()+player.getHeight()/2, 0);
 		//cam.viewportWidth = VIRTUAL_WIDTH/2;
 		//cam.viewportHeight = VIRTUAL_HEIGHT/2;
 		cam.update();
@@ -98,12 +103,19 @@ public class StickmanGame extends ApplicationAdapter {
 		
 		// Draw the world
 		batch.begin();
-		World.draw(batch);
-		batch.end();
+		World.draw(batch, cam);
 		
 		// Draw the GUI
 		if( Gdx.app.getType() != ApplicationType.Desktop ){
 			AndroidGUI.draw(viewport);
+			/*BitmapFont f = AndroidGUI.getFont();
+			f.setColor(Color.RED);
+			f.draw(batch, String.valueOf(GameRules.redKills), 0, 0);
+			f.setColor(Color.BLUE);
+			f.draw(batch, String.valueOf(GameRules.blueKills), 0, f.getCapHeight());*/
 		}
+		
+
+		batch.end();
 	}
 }
